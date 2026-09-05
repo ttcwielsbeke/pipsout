@@ -91,9 +91,8 @@ maten die GitHub gebruikt en schrijft meteen de nieuwe `logo.png` weg.
 
 ## Op de clubwebsite zetten
 
-Voor wie de spelletjespagina bouwt. Alles hieronder is publiek en heeft geen sleutel nodig.
-
-**Voor een kaartje op de spelletjespagina**
+Voor wie de spelletjespagina bouwt: een kaartje dat doorlinkt volstaat. Alles hieronder
+is publiek en heeft geen sleutel nodig.
 
 | veld | waarde |
 |---|---|
@@ -103,21 +102,7 @@ Voor wie de spelletjespagina bouwt. Alles hieronder is publiek en heeft geen sle
 | afbeelding | `https://ttcwielsbeke.github.io/pipsout/og.jpg` (1200×630, jpeg) |
 | link | `https://ttcwielsbeke.github.io/pipsout/` |
 
-**Of het spel meteen in de pagina zelf**
-
-```html
-<div style="max-width:480px;margin:0 auto">
-  <iframe src="https://ttcwielsbeke.github.io/pipsout/"
-          title="PIPS OUT! — het officiële videospel van TTC Wielsbeke-Spotit"
-          style="width:100%;aspect-ratio:46/80;border:0;border-radius:12px"
-          loading="lazy"></iframe>
-</div>
-```
-
-Het spel is helemaal statisch en past zich aan de breedte aan, dus een iframe volstaat.
-Twee dingen om te weten: het geluid start pas na de eerste tik (zoals elke browser wil),
-en de erelijst in een iframe staat los van die op de aparte pagina, omdat browsers de
-opslag per site apart houden. Wie de volledige ervaring wil, klikt door naar de link.
+Het spel opent gewoon in een nieuw tabblad en past zich aan gsm en laptop aan.
 
 ## De link-preview opnieuw maken
 
