@@ -23,7 +23,9 @@ const el = {
   title: $('screen-title'), how: $('screen-how'), clear: $('screen-clear'), over: $('screen-over'),
   clearPips: $('clearPips'), clearBonus: $('clearBonus'), clearTotal: $('clearTotal'),
   clearQuip: $('clearQuip'), overQuip: $('overQuip'),
-  finalScore: $('finalScore'), bestTitle: $('bestTitle'), bestOver: $('bestOver')
+  finalScore: $('finalScore'), bestOver: $('bestOver'),
+  board: $('screen-board'), boardList: $('boardList'), boardNote: $('boardNote'),
+  submitRow: $('submitRow'), submitDone: $('submitDone'), playerName: $('playerName')
 };
 
 /* ============================================================
@@ -395,9 +397,55 @@ function hitAt(x, y){
    ============================================================ */
 function show(name){
   G.screen = name;
-  for (const k of ['title', 'how', 'clear', 'over']) el[k].classList.add('hidden');
+  for (const k of ['title', 'how', 'clear', 'over', 'board']) el[k].classList.add('hidden');
   if (el[name]) el[name].classList.remove('hidden');
   el.levelTag.classList.toggle('hidden', name !== 'play');
+}
+
+/* ============================================================
+   ERELIJST
+   ============================================================ */
+let boardFrom = 'title';        // waar 'Terug' naartoe gaat
+
+function renderBoard(mineTs){
+  const rows = PipsBoard.top();
+  const list = el.boardList;
+  list.textContent = '';
+
+  if (!rows.length){
+    const li = document.createElement('li');
+    li.className = 'leeg';
+    li.textContent = 'Nog niemand. Wees de eerste.';
+    list.appendChild(li);
+  } else {
+    rows.forEach((r, i) => {
+      const li = document.createElement('li');
+      if (mineTs && r.ts === mineTs) li.className = 'me';
+      const cel = (cls, txt) => {
+        const sp = document.createElement('span');
+        sp.className = cls;
+        sp.textContent = txt;          // nooit innerHTML: namen komen van spelers
+        return sp;
+      };
+      li.appendChild(cel('rk', (i + 1) + '.'));
+      li.appendChild(cel('nm', r.name));
+      li.appendChild(cel('sc', String(r.score).padStart(6, '0')));
+      li.appendChild(cel('lv', 'blad ' + r.level));
+      list.appendChild(li);
+    });
+  }
+
+  el.boardNote.textContent = rows.length
+    ? 'Deze lijst staat op dit toestel. Laat iedereen op dezelfde gsm spelen en heel de club staat erin.'
+    : 'Speel een partij en zet je naam erbij.';
+}
+
+function showBoard(from, mineTs){
+  boardFrom = from;
+  renderBoard(mineTs);
+  show('board');
+  const me = el.boardList.querySelector('.me');
+  if (me) me.scrollIntoView({ block: 'center' });
 }
 
 function startGame(){
@@ -447,7 +495,12 @@ function gameOver(){
   el.finalScore.textContent = String(Math.min(999999, G.score)).padStart(6, '0');
   el.overQuip.textContent = pick(OVER_QUIPS);
   el.bestOver.textContent = G.best;
-  el.bestTitle.textContent = G.best;
+
+  // naam onthouden van de vorige keer, scoreloos spel niet noteren
+  el.submitRow.classList.toggle('hidden', G.score <= 0);
+  el.submitDone.classList.add('hidden');
+  el.playerName.value = localStorage.getItem('ttcw_name') || '';
+
   Snd.dead();
   show('over');
 }
@@ -792,6 +845,25 @@ $('btnShare').onclick = async () => {
     else { await navigator.clipboard.writeText(txt); alert('Gekopieerd! Plak maar in de clubgroep.'); }
   } catch (_){ /* gebruiker brak af */ }
 };
+$('btnBoard').onclick     = () => showBoard('title');
+$('btnBoardOver').onclick = () => showBoard('over');
+$('btnBoardBack').onclick = () => show(boardFrom);
+
+el.submitRow.addEventListener('submit', e => {
+  e.preventDefault();
+  const res = PipsBoard.submit(el.playerName.value, G.score, G.level);
+  if (!res) return;                       // score past niet bij het blad
+
+  localStorage.setItem('ttcw_name', res.entry.name);
+  el.submitRow.classList.add('hidden');
+  el.submitDone.classList.remove('hidden');
+  el.submitDone.textContent = res.rank
+    ? 'Genoteerd als ' + res.entry.name + ' — plaats ' + res.rank + '.'
+    : 'Genoteerd als ' + res.entry.name + '.';
+  Snd.gold();
+  setTimeout(() => showBoard('over', res.entry.ts), 750);
+});
+
 el.mute.onclick = () => {
   Snd.on = !Snd.on;
   el.mute.classList.toggle('off', !Snd.on);
@@ -799,6 +871,7 @@ el.mute.onclick = () => {
 
 /* ---------- toetsenbord ---------- */
 addEventListener('keydown', e => {
+  if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
   if (e.code !== 'Space' && e.code !== 'Enter') return;
   e.preventDefault();
   if (G.screen === 'title') startGame();
@@ -846,7 +919,6 @@ function tick(){
 buildSwatches();
 buildLevel(1);
 show('title');
-el.bestTitle.textContent = G.best;
 drawHearts();
 bumpScore();
 resize();

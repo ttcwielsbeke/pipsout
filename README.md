@@ -16,6 +16,10 @@ Open `index.html`, of speel online (GitHub Pages, zie onder).
 - ⚫ **Anti-topspin nop** — níet aanraken, −3 seconden en je combo is weg.
 - Rubber leeg vóór de klok af is → volgend blad. Klok op nul → een hartje minder. Drie hartjes en het is gedaan.
 
+Na afloop zet je je naam bij je score en kom je in de **erelijst**. Die staat op het
+toestel zelf: laat iedereen op dezelfde gsm spelen en heel de club staat in de lijst.
+Per naam blijft enkel de beste score staan.
+
 Je kan je rubberkleur kiezen op het titelscherm: rood, zwart, groen, blauw, roze en paars —
 de kleuren die sinds de ITTF-regelwijziging van 2021 effectief te koop zijn bij korte noppen.
 De keuze wordt onthouden, net als je clubrecord (`localStorage`).
@@ -29,6 +33,7 @@ Drie bestanden, geen build, geen dependencies, geen server, geen assets.
 | `index.html` | HUD, overlays, ticker, og-tags |
 | `style.css` | de pixel-arcade skin |
 | `game.js` | canvas-render, noppenraster, geluid |
+| `board.js` | de erelijst (localStorage) |
 | `og.jpg` | 1200×630 kaart voor de link-preview |
 | `tools/og.html` | generator die die kaart opnieuw maakt |
 

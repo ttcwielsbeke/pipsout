@@ -141,7 +141,7 @@ body{
   position:absolute; inset:0; z-index:4;
   display:flex; flex-direction:column;
   align-items:center; justify-content:center; gap:10px;
-  padding:18px 20px;
+  padding:14px 20px;
   text-align:center;
   background:linear-gradient(rgba(4,22,48,.86), rgba(4,22,48,.94));
   backdrop-filter:blur(2px);
@@ -208,6 +208,43 @@ body{
 }
 .sw:hover{ transform:translateY(-2px); }
 .sw[aria-checked="true"]{ border-color:#fff; transform:translateY(-3px) scale(1.1); }
+
+/* ---------- knoppen naast elkaar ---------- */
+.btnrow{ display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+
+/* ---------- naam ingeven na afloop ---------- */
+.namerow{ display:flex; gap:6px; width:min(320px,94%); margin-top:2px; }
+#playerName{
+  flex:1; min-width:0;
+  font-family:var(--px); font-size:10px; text-transform:uppercase;
+  padding:11px 10px; color:#fff;
+  background:#06203f; border:3px solid var(--chrome); border-radius:9px;
+  box-shadow: inset 0 2px 3px rgba(0,0,0,.6);
+}
+#playerName::placeholder{ color:#4d7ba8; }
+#playerName:focus{ outline:none; border-color:var(--gold); }
+.btn.small{ font-size:9px; padding:11px 13px; margin-top:0; border-width:3px; }
+.noted{ font-size:9px; color:var(--gold); line-height:1.8; }
+
+/* ---------- de erelijst ---------- */
+.board{
+  list-style:none; width:min(330px,96%);
+  display:flex; flex-direction:column; gap:5px;
+  max-height:46vh; overflow-y:auto; padding:2px;
+}
+.board li{
+  display:flex; align-items:baseline; gap:9px;
+  padding:7px 9px; font-size:9px; text-align:left;
+  background:rgba(11,42,80,.75);
+  border:2px solid #1d4c80; border-radius:7px;
+}
+.board li.me{ border-color:var(--gold); background:rgba(78,58,10,.6); }
+.board .rk{ width:24px; flex:0 0 auto; color:#6f9ac4; }
+.board li:first-child .rk{ color:var(--gold); }
+.board .nm{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.board .sc{ color:#bfe4ff; flex:0 0 auto; }
+.board .lv{ font-size:7px; color:#6f9ac4; flex:0 0 auto; }
+.board .leeg{ justify-content:center; color:#8fb6dd; font-style:italic; }
 
 .best{ font-size:8px; color:#8fb6dd; margin-top:4px; }
 .best span{ color:var(--gold); }
