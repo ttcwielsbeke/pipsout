@@ -662,11 +662,13 @@ function render(tms){
   // combo-teller
   if (G.screen === 'play' && G.combo >= 5){
     const m = comboMult();
-    ctx.font = '17px "Press Start 2P", monospace';
-    ctx.fillStyle = '#000'; ctx.fillText('x' + m, CX + 2, 42);
-    ctx.fillStyle = m >= 5 ? '#ffd23f' : '#fff'; ctx.fillText('x' + m, CX, 40);
+    const bx = 104, by = 434;             // links naast het handvat
+    ctx.font = '18px "Press Start 2P", monospace';
+    ctx.fillStyle = '#04162c'; ctx.fillText('x' + m, bx + 2, by + 2);
+    ctx.fillStyle = m >= 5 ? '#ffd23f' : '#fff'; ctx.fillText('x' + m, bx, by);
     ctx.font = '7px "Press Start 2P", monospace';
-    ctx.fillStyle = '#bcd8f5'; ctx.fillText('COMBO', CX, 56);
+    ctx.fillStyle = '#04162c'; ctx.fillText('COMBO', bx + 1, by + 17);
+    ctx.fillStyle = '#bcd8f5'; ctx.fillText('COMBO', bx, by + 16);
   }
 
   ctx.restore();
