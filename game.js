@@ -8,7 +8,9 @@
 
 /* ---------- logische canvasmaat ---------- */
 const W = 440, H = 520;
-const CX = 220, CY = 212, R = 152;      // rubber: middelpunt + straal
+const CX = 220, CY = 196;                // middelpunt van het blad
+const RX = 148, RY = 155;               // rubbervlak: een blad is iets hoger dan breed
+const HTOP = CY + RY - 34, HBOT = 498;  // handvat: van onder het blad tot de knop
 
 const cv  = document.getElementById('game');
 const ctx = cv.getContext('2d');
@@ -255,15 +257,17 @@ function buildLevel(lv){
   const d = c.pipR * 2 + c.gap;
   const rowH = d * Math.sqrt(3) / 2;
   const pips = [];
-  const rows = Math.ceil(R / rowH) + 1;
-  const cols = Math.ceil(R / d) + 1;
+  const rows = Math.ceil(RY / rowH) + 1;
+  const cols = Math.ceil(RX / d) + 1;
+  const ax = RX - c.pipR - 4, ay = RY - c.pipR - 4;   // noppen blijven op het rubber
 
   for (let j = -rows; j <= rows; j++){
     const y = CY + j * rowH;
     const off = (Math.abs(j) % 2) ? d / 2 : 0;
     for (let i = -cols; i <= cols; i++){
       const x = CX + i * d + off;
-      if (Math.hypot(x - CX, y - CY) > R - c.pipR - 3) continue;
+      const nx = (x - CX) / ax, ny = (y - CY) / ay;
+      if (nx * nx + ny * ny > 1) continue;
       pips.push({ x, y, r: c.pipR, type: 'normal', popped: false, t: 0, seed: Math.random() });
     }
   }
@@ -518,37 +522,92 @@ function roundRect(x, y, w, h, r){
   ctx.closePath();
 }
 
+/* ---------- silhouet van het handvat: schouders, taille, knop ---------- */
+function handlePath(){
+  const t = HTOP, b = HBOT;
+  ctx.beginPath();
+  ctx.moveTo(CX - 47, t);
+  ctx.bezierCurveTo(CX - 45, t + 36, CX - 28, t + 42, CX - 27, t + 74);   // schouder naar taille
+  ctx.bezierCurveTo(CX - 26, t + 110, CX - 36, t + 116, CX - 37, b - 16); // taille naar knop
+  ctx.quadraticCurveTo(CX - 37, b, CX - 21, b);
+  ctx.lineTo(CX + 21, b);
+  ctx.quadraticCurveTo(CX + 37, b, CX + 37, b - 16);
+  ctx.bezierCurveTo(CX + 36, t + 116, CX + 26, t + 110, CX + 27, t + 74);
+  ctx.bezierCurveTo(CX + 28, t + 42, CX + 45, t + 36, CX + 47, t);
+  ctx.closePath();
+}
+
 function drawHandle(){
-  // hout achter het blad door
   ctx.save();
-  ctx.fillStyle = '#3b2412';
-  roundRect(CX - 36, 300, 72, 200, 16); ctx.fill();
 
-  const g = ctx.createLinearGradient(CX - 34, 0, CX + 34, 0);
-  g.addColorStop(0, '#a9702f'); g.addColorStop(.35, '#d9a05a');
-  g.addColorStop(.7, '#b07b3a'); g.addColorStop(1, '#7d4f22');
-  ctx.fillStyle = g;
-  roundRect(CX - 32, 300, 64, 196, 14); ctx.fill();
+  // slagschaduw
+  ctx.save(); ctx.translate(0, 5); handlePath();
+  ctx.fillStyle = 'rgba(18,9,2,.6)'; ctx.fill(); ctx.restore();
 
-  // grip (donkere band)
-  ctx.fillStyle = 'rgba(60,32,12,.55)';
-  roundRect(CX - 32, 372, 64, 96, 12); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.10)';
-  for (let i = 0; i < 5; i++) ctx.fillRect(CX - 30, 382 + i * 18, 60, 3);
+  // hout, met licht van linksboven
+  handlePath();
+  const g = ctx.createLinearGradient(CX - 42, 0, CX + 42, 0);
+  g.addColorStop(0,   '#71441b');
+  g.addColorStop(.16, '#ad7436');
+  g.addColorStop(.40, '#dda765');
+  g.addColorStop(.62, '#c08c4a');
+  g.addColorStop(.86, '#87551f');
+  g.addColorStop(1,   '#5f3a13');
+  ctx.fillStyle = g; ctx.fill();
+
+  ctx.save(); handlePath(); ctx.clip();
+
+  // de bladkern loopt als een lat door het handvat, met een schaal aan elke kant
+  ctx.fillStyle = 'rgba(255,232,190,.14)';
+  ctx.fillRect(CX - 10, HTOP, 20, HBOT - HTOP);
+  ctx.fillStyle = 'rgba(74,42,14,.55)';
+  ctx.fillRect(CX - 12, HTOP, 2.5, HBOT - HTOP);
+  ctx.fillRect(CX + 9.5, HTOP, 2.5, HBOT - HTOP);
+
+  // houtnerf
+  ctx.strokeStyle = 'rgba(58,31,11,.15)'; ctx.lineWidth = 1;
+  for (let i = 0; i < 8; i++){
+    const x = CX - 36 + i * 9.5;
+    ctx.beginPath(); ctx.moveTo(x, HTOP);
+    ctx.quadraticCurveTo(x + 5, (HTOP + HBOT) / 2, x, HBOT); ctx.stroke();
+  }
+
+  // schaduw van het blad op de schouders
+  const sh = ctx.createLinearGradient(0, HTOP, 0, HTOP + 66);
+  sh.addColorStop(0, 'rgba(0,0,0,.6)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sh; ctx.fillRect(CX - 52, HTOP, 104, 66);
+  ctx.restore();
+
+  handlePath();
+  ctx.strokeStyle = 'rgba(46,24,7,.7)'; ctx.lineWidth = 2; ctx.stroke();
   ctx.restore();
 }
 
 function drawBlade(){
-  // houten rand
   ctx.save();
-  ctx.beginPath(); ctx.arc(CX, CY + 4, R + 13, 0, 7); ctx.fillStyle = '#3b2412'; ctx.fill();
-  ctx.beginPath(); ctx.arc(CX, CY, R + 13, 0, 7); ctx.fillStyle = '#c69553'; ctx.fill();
-  // spons
-  ctx.beginPath(); ctx.arc(CX, CY, R + 6, 0, 7); ctx.fillStyle = '#efe3d6'; ctx.fill();
+
+  // schaduw onder het blad
+  ctx.beginPath(); ctx.ellipse(CX, CY + 7, RX + 12, RY + 12, 0, 0, 7);
+  ctx.fillStyle = 'rgba(18,9,2,.5)'; ctx.fill();
+
+  // hout van het blad
+  ctx.beginPath(); ctx.ellipse(CX, CY, RX + 12, RY + 12, 0, 0, 7);
+  const w = ctx.createLinearGradient(CX - RX, CY - RY, CX + RX, CY + RY);
+  w.addColorStop(0, '#e8c084'); w.addColorStop(.5, '#c69553'); w.addColorStop(1, '#9a6a2c');
+  ctx.fillStyle = w; ctx.fill();
+  ctx.strokeStyle = 'rgba(60,33,12,.55)'; ctx.lineWidth = 2; ctx.stroke();
+
+  // spons: het witte randje tussen hout en rubber
+  ctx.beginPath(); ctx.ellipse(CX, CY, RX + 5, RY + 5, 0, 0, 7);
+  ctx.fillStyle = '#efe3d6'; ctx.fill();
+
   // rubber
-  const g = ctx.createRadialGradient(CX - 60, CY - 70, 20, CX, CY, R + 8);
+  const g = ctx.createRadialGradient(CX - 58, CY - 72, 20, CX, CY, RX + 10);
   g.addColorStop(0, RB.rubber[0]); g.addColorStop(.55, RB.rubber[1]); g.addColorStop(1, RB.rubber[2]);
-  ctx.beginPath(); ctx.arc(CX, CY, R, 0, 7); ctx.fillStyle = g; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(CX, CY, RX, RY, 0, 0, 7);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1.5; ctx.stroke();
+
   ctx.restore();
 }
 
@@ -625,12 +684,12 @@ function render(tms){
 
   // spiegeling over het rubber
   ctx.save();
-  ctx.beginPath(); ctx.arc(CX, CY, R, 0, 7); ctx.clip();
-  const sh = ctx.createLinearGradient(CX - R, CY - R, CX + R * .4, CY + R * .6);
+  ctx.beginPath(); ctx.ellipse(CX, CY, RX, RY, 0, 0, 7); ctx.clip();
+  const sh = ctx.createLinearGradient(CX - RX, CY - RY, CX + RX * .4, CY + RY * .6);
   sh.addColorStop(0, 'rgba(255,255,255,.16)');
   sh.addColorStop(.45, 'rgba(255,255,255,.03)');
   sh.addColorStop(1, 'rgba(0,0,0,.22)');
-  ctx.fillStyle = sh; ctx.fillRect(CX - R, CY - R, R * 2, R * 2);
+  ctx.fillStyle = sh; ctx.fillRect(CX - RX, CY - RY, RX * 2, RY * 2);
   ctx.restore();
 
   // ringen
@@ -762,10 +821,25 @@ function resize(){
 addEventListener('resize', resize);
 if (window.ResizeObserver) new ResizeObserver(resize).observe(cv);
 
+/* ---------- nieuwsticker die effectief voorbijschuift ---------- */
 let tickI = 0;
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 function tick(){
-  el.tickText.textContent = HEADLINES[tickI % HEADLINES.length];
-  tickI++;
+  const t = el.tickText;
+  t.textContent = HEADLINES[tickI++ % HEADLINES.length];
+
+  if (REDUCED || !t.animate){ setTimeout(tick, 7000); return; }
+
+  const win = t.parentElement.clientWidth;
+  const txt = t.scrollWidth;
+  if (!win){ setTimeout(tick, 1200); return; }   // ticker verborgen (kleine schermen)
+
+  const a = t.animate(
+    [{ transform: 'translateX(' + win + 'px)' }, { transform: 'translateX(' + (-txt) + 'px)' }],
+    { duration: (win + txt) / 58 * 1000, easing: 'linear' }
+  );
+  a.onfinish = tick;
 }
 
 // decoratief blad achter het titelscherm
@@ -776,7 +850,7 @@ el.bestTitle.textContent = G.best;
 drawHearts();
 bumpScore();
 resize();
-tick(); setInterval(tick, 6000);
+tick();
 requestAnimationFrame(frame);
 
 })();

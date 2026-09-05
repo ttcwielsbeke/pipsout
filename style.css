@@ -253,7 +253,21 @@ body{
   font-size:7px; background:#e8634a; color:#fff;
   padding:4px 6px; border-radius:3px; flex:0 0 auto;
 }
-.tick-text{ font-size:8px; color:#a9cdef; overflow:hidden; text-overflow:ellipsis; }
+.tick-window{
+  flex:1; position:relative; overflow:hidden;
+  height:14px; -webkit-mask-image:linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+          mask-image:linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+}
+.tick-text{
+  position:absolute; left:0; top:2px;
+  font-size:8px; color:#a9cdef; white-space:nowrap;
+  will-change:transform;
+}
+/* wie liever geen bewegende tekst heeft, krijgt ze gewoon stil */
+@media (prefers-reduced-motion:reduce){
+  .tick-window{ -webkit-mask-image:none; mask-image:none; }
+  .tick-text{ position:static; white-space:normal; }
+}
 
 /* ---------- mute ---------- */
 #mute{
