@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>PIPS OUT! — TTC Wielsbeke-Spotit</title>
+<meta name="description" content="Het officiële videospel van TTC Wielsbeke-Spotit. Pop alle noppen van je rubber en word een echte noppenspeler.">
+<meta name="theme-color" content="#0b3a75">
+<meta property="og:title" content="PIPS OUT! — TTC Wielsbeke-Spotit">
+<meta property="og:description" content="Bestuur introduceert videogame die de politieke agenda van de club in de verf moet zetten.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='13' r='11' fill='%23c8242a'/%3E%3Crect x='14' y='22' width='4' height='9' fill='%23b07b3a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ HUD ============ -->
+  <div id="hud">
+    <div class="hudbox" id="hud-timer">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="9" y="1" width="6" height="2.4" rx="1" fill="#e8e8e8"/>
+        <circle cx="12" cy="14" r="8.6" fill="#e8e8e8"/>
+        <circle cx="12" cy="14" r="7" fill="#c8242a"/>
+        <rect x="11.2" y="8.5" width="1.6" height="6" rx=".8" fill="#fff"/>
+        <rect x="18" y="4" width="3.4" height="2.2" rx="1" transform="rotate(45 19.7 5.1)" fill="#e8e8e8"/>
+      </svg>
+      <div class="bar"><div class="bar-fill" id="timerFill"></div></div>
+    </div>
+
+    <div class="hudbox" id="hud-score">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 3h12v5a6 6 0 0 1-12 0z" fill="#ffd23f"/>
+        <path d="M6 4H3v2a4 4 0 0 0 4 4M18 4h3v2a4 4 0 0 1-4 4" stroke="#ffd23f" stroke-width="1.8" fill="none"/>
+        <rect x="10.5" y="13" width="3" height="4" fill="#ffd23f"/>
+        <rect x="7" y="17" width="10" height="3" rx="1" fill="#ffd23f"/>
+      </svg>
+      <div class="digits" id="scoreDigits">000000</div>
+    </div>
+
+    <div class="hudbox" id="hud-lives">
+      <div class="hearts" id="hearts"></div>
+    </div>
+  </div>
+
+  <!-- ============ PLAYFIELD ============ -->
+  <div id="stage">
+    <canvas id="game" width="440" height="520"></canvas>
+
+    <!-- level banner -->
+    <div id="levelTag" class="hidden"></div>
+
+    <!-- ---- TITLE SCREEN ---- -->
+    <div class="overlay" id="screen-title">
+      <div class="poster-kicker">Gaming</div>
+      <h1 class="poster-head">Bestuur van TTC&nbsp;Wielsbeke-Spotit introduceert videogame die de politieke agenda van de club in de verf moet zetten</h1>
+      <div class="logo">PIPS<span>OUT!</span></div>
+      <p class="tagline">Pop élke nop van je rubber.<br>Word de noppenspeler die het bestuur altijd al wou.</p>
+      <div class="rubberpick">
+        <div class="rp-label">Kies je rubber — <span id="rubberName">Rood</span></div>
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <button class="btn" id="btnStart">SPELEN</button>
+      <button class="btn ghost" id="btnHow">Hoe werkt het?</button>
+      <div class="best">Clubrecord: <span id="bestTitle">0</span></div>
+    </div>
+
+    <!-- ---- HOW TO ---- -->
+    <div class="overlay hidden" id="screen-how">
+      <h2 class="ov-title">Reglement</h2>
+      <ul class="rules">
+        <li><i class="pip normal"></i><span><b>Noppen</b> — klik of veeg ze kapot. Snel na elkaar = combo.</span></li>
+        <li><i class="pip gold"></i><span><b>Gouden nop</b> — +3 seconden op de klok.</span></li>
+        <li><i class="pip bomb"></i><span><b>Lijmnop</b> — ontploft en sleurt de buren mee.</span></li>
+        <li><i class="pip dead"></i><span><b>Anti-topspin nop</b> — <b class="no">niet</b> aanraken. −3 seconden.</span></li>
+      </ul>
+      <p class="fineprint">Rubber leeg vóór de klok af is → volgend blad. Klok op nul → een hartje minder.</p>
+      <button class="btn" id="btnBack">Terug</button>
+    </div>
+
+    <!-- ---- LEVEL COMPLETE ---- -->
+    <div class="overlay hidden" id="screen-clear">
+      <h2 class="ov-title">BLAD KAAL!</h2>
+      <div class="clear-rows">
+        <div><span>Noppen</span><b id="clearPips">0</b></div>
+        <div><span>Tijdbonus</span><b id="clearBonus">0</b></div>
+        <div class="tot"><span>Totaal</span><b id="clearTotal">0</b></div>
+      </div>
+      <p class="quip" id="clearQuip"></p>
+      <button class="btn" id="btnNext">Volgend blad</button>
+    </div>
+
+    <!-- ---- GAME OVER ---- -->
+    <div class="overlay hidden" id="screen-over">
+      <h2 class="ov-title over">RUBBER OP</h2>
+      <div class="finalscore" id="finalScore">000000</div>
+      <p class="quip" id="overQuip"></p>
+      <div class="best">Clubrecord: <span id="bestOver">0</span></div>
+      <button class="btn" id="btnRetry">Opnieuw</button>
+      <button class="btn ghost" id="btnShare">Deel je score</button>
+    </div>
+  </div>
+
+  <!-- ============ TICKER ============ -->
+  <div id="ticker">
+    <span class="tick-label">Wielsbeke nieuwsflits</span>
+    <span class="tick-text" id="tickText"></span>
+  </div>
+
+</div>
+
+<button id="mute" title="Geluid aan/uit" aria-label="Geluid aan/uit">♪</button>
+
+<script src="game.js"></script>
+</body>
+</html>
