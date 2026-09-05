@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>logo-generator — TTC Wielsbeke</title>
+<style>
+  body{background:#0d1b2c;color:#cfe9ff;font:13px/1.6 system-ui,sans-serif;margin:0;padding:20px}
+  h1{font-size:15px;margin:0 0 4px}
+  p{margin:0 0 16px;color:#8fb6dd}
+  .row{display:flex;gap:26px;align-items:flex-end;flex-wrap:wrap;margin:0 0 18px;padding:16px;border-radius:8px}
+  .op{background:#fff}
+  .dk{background:#0d1117}
+  figure{margin:0}
+  .lbl{font:10px ui-monospace,monospace;color:#8a97a5;margin-top:6px;text-align:center}
+  img{display:block;border-radius:50%}
+  #log{font-family:ui-monospace,monospace;color:#9bff6e}
+</style>
+</head>
+<body>
+
+<h1>logo-generator</h1>
+<p>
+  Rendert <code>logo.svg</code> op elke maat die GitHub gebruikt, en POST't de 512×512
+  versie als <code>logo.png</code> naar <code>ogsave.py</code> op poort 8124.
+  De rondjes hieronder tonen hoe GitHub het bijsnijdt.
+</p>
+
+<div class="row op" id="op"></div>
+<div class="row dk" id="dk"></div>
+<div id="log">bezig…</div>
+
+<canvas id="cv" width="512" height="512" hidden></canvas>
+
+<script>
+const SIZES = [280, 128, 64, 40, 20];
+const log = m => document.getElementById('log').textContent = m;
+
+function draw(img, size){
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = size;
+  cv.getContext('2d').drawImage(img, 0, 0, size, size);
+  return cv.toDataURL('image/png');
+}
+
+const img = new Image();
+img.onload = async () => {
+  for (const host of ['op', 'dk']){
+    for (const s of SIZES){
+      const f = document.createElement('figure');
+      f.innerHTML = '<img width="' + s + '" height="' + s + '" src="' + draw(img, s * 2) + '">'
+                  + '<div class="lbl">' + s + '</div>';
+      document.getElementById(host).appendChild(f);
+    }
+  }
+
+  const cv = document.getElementById('cv');
+  cv.getContext('2d').drawImage(img, 0, 0, 512, 512);
+  cv.toBlob(async b => {
+    try {
+      const r = await fetch('http://127.0.0.1:8124/logo.png', { method: 'POST', body: b });
+      log('KLAAR — ' + await r.text());
+    } catch (e){
+      log('POST mislukt (' + e.message + '). Draait ogsave.py op 8124?');
+    }
+  }, 'image/png');
+};
+img.onerror = () => log('logo.svg niet gevonden');
+img.src = '../logo.svg';
+</script>
+</body>
+</html>

@@ -35,7 +35,10 @@ Drie bestanden, geen build, geen dependencies, geen server, geen assets.
 | `game.js` | canvas-render, noppenraster, geluid |
 | `board.js` | de erelijst (localStorage) |
 | `og.jpg` | 1200×630 kaart voor de link-preview |
+| `logo.svg` | het batje als vector — bron voor het GitHub-logo |
+| `logo.png` | 512×512, klaar om te uploaden |
 | `tools/og.html` | generator die die kaart opnieuw maakt |
+| `tools/logo.html` | zet `logo.svg` om in `logo.png` |
 
 - Het blad is een hexagonaal noppenraster binnen een cirkel; noppengrootte per level in `PIP_SIZES`.
 - Alle geluid is gesynthetiseerd met de Web Audio API — er staat geen enkel `.mp3` in deze repo.
@@ -52,16 +55,69 @@ Dan naar <http://localhost:8123>. (`index.html` rechtstreeks openen werkt ook.)
 
 ## Hosten op GitHub Pages
 
-Deze repo staat op <https://github.com/boermansjo/pipsout>.
+Deze repo staat op <https://github.com/ttcwielsbeke/pipsout>.
 
 Eenmalig aanzetten: **Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)`**
-(<https://github.com/boermansjo/pipsout/settings/pages>).
+(<https://github.com/ttcwielsbeke/pipsout/settings/pages>).
 
-Een minuutje later staat het spel op **<https://boermansjo.github.io/pipsout/>** —
-een gratis .io-domein, precies zoals de nieuwsflits beloofde.
+Een minuutje later staat het spel op **<https://ttcwielsbeke.github.io/pipsout/>** —
+een gratis .io-domein op naam van de club, precies zoals de nieuwsflits beloofde.
 
 Vanaf dan is elke `git push` naar `main` meteen een release. Er is geen build,
 dus wat in de repo staat, is wat er online staat.
+
+## Het logo
+
+`logo.svg` is het clubbatje natekend in vectorvorm: cirkels, rechthoeken en één boog,
+geen lettertype en geen ingebedde afbeelding. Daardoor is elke maat scherp — van de
+460 pixels op een GitHub-profiel tot de 20 pixels naast een commit.
+
+Het vierkant is opgebouwd voor de ronde uitsnede die GitHub eroverheen legt: het batje
+staat op de diagonaal en de drie clubkleuren lopen vol over de breedte, zodat de cirkel
+er niets van afsnijdt dat ertoe doet.
+
+Uploaden: **Settings → Profile → Picture** (of **Organization → Settings → Profile**)
+en kies `logo.png`.
+
+Opnieuw maken na een aanpassing aan `logo.svg`:
+
+```bash
+python tools/ogsave.py     # schrijft binnenkomende PNG naar de repo
+python -m http.server 8123 # en in een tweede terminal
+```
+
+Dan naar <http://localhost:8123/tools/logo.html>. De pagina toont het logo op alle
+maten die GitHub gebruikt en schrijft meteen de nieuwe `logo.png` weg.
+
+## Op de clubwebsite zetten
+
+Voor wie de spelletjespagina bouwt. Alles hieronder is publiek en heeft geen sleutel nodig.
+
+**Voor een kaartje op de spelletjespagina**
+
+| veld | waarde |
+|---|---|
+| titel | PIPS OUT! |
+| ondertitel | Het officiële videospel van TTC Wielsbeke-Spotit |
+| omschrijving | Pop élke nop van je rubber voor de klok af is. |
+| afbeelding | `https://ttcwielsbeke.github.io/pipsout/og.jpg` (1200×630, jpeg) |
+| link | `https://ttcwielsbeke.github.io/pipsout/` |
+
+**Of het spel meteen in de pagina zelf**
+
+```html
+<div style="max-width:480px;margin:0 auto">
+  <iframe src="https://ttcwielsbeke.github.io/pipsout/"
+          title="PIPS OUT! — het officiële videospel van TTC Wielsbeke-Spotit"
+          style="width:100%;aspect-ratio:46/80;border:0;border-radius:12px"
+          loading="lazy"></iframe>
+</div>
+```
+
+Het spel is helemaal statisch en past zich aan de breedte aan, dus een iframe volstaat.
+Twee dingen om te weten: het geluid start pas na de eerste tik (zoals elke browser wil),
+en de erelijst in een iframe staat los van die op de aparte pagina, omdat browsers de
+opslag per site apart houden. Wie de volledige ervaring wil, klikt door naar de link.
 
 ## De link-preview opnieuw maken
 

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="TTC Wielsbeke">
+  <title>TTC Wielsbeke</title>
+
+  <rect width="512" height="512" fill="#ffffff"/>
+
+  <!-- de drie clubkleuren, vol over de breedte zodat ze een ronde uitsnede overleven -->
+  <g>
+    <rect x="0" y="320" width="512" height="22" fill="#e30613"/>
+    <rect x="0" y="358" width="512" height="22" fill="#78be20"/>
+    <rect x="0" y="396" width="512" height="22" fill="#0092d6"/>
+  </g>
+
+  <!-- batje: handvat, blad, balletje -->
+  <g fill="#111111">
+    <g transform="rotate(45 200 200)"><rect x="145" y="167" width="351" height="66" rx="20"/></g>
+    <circle cx="200" cy="200" r="122"/>
+    <circle cx="242" cy="376" r="35"/>
+  </g>
+
+  <!-- de witte snede over blad en handvat -->
+  <path d="M335.5 211.5 211.5 335.5" stroke="#ffffff" stroke-width="15"/>
+
+  <!-- TTC, als vormen getekend zodat er geen lettertype nodig is -->
+  <g fill="#ffffff">
+    <rect x="101" y="143" width="56" height="17"/>
+    <rect x="120.5" y="143" width="17" height="91"/>
+    <rect x="166.5" y="143" width="56" height="17"/>
+    <rect x="186" y="143" width="17" height="91"/>
+    <path d="M279.8 158.2a25 37 0 1 0 0 60.6" fill="none" stroke="#ffffff" stroke-width="17"/>
+  </g>
+</svg>
