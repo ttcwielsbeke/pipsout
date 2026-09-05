@@ -377,7 +377,10 @@ function burst(p, col, n){
 function addText(x, y, t, col){ G.texts.push({ x, y, t, col, life: 0.9 }); }
 
 function bumpScore(){
-  el.scoreDigits.textContent = String(Math.min(999999, G.score)).padStart(6, '0');
+  const txt = String(G.score).padStart(6, '0');
+  el.scoreDigits.textContent = txt;
+  el.scoreDigits.classList.toggle('long',  txt.length === 7);
+  el.scoreDigits.classList.toggle('vlong', txt.length > 7);
   el.scoreDigits.classList.remove('bump');
   void el.scoreDigits.offsetWidth;
   el.scoreDigits.classList.add('bump');
@@ -407,45 +410,59 @@ function show(name){
    ============================================================ */
 let boardFrom = 'title';        // waar 'Terug' naartoe gaat
 
-function renderBoard(mineTs){
-  const rows = PipsBoard.top();
-  const list = el.boardList;
-  list.textContent = '';
+let boardToken = 0;                 // tegen twee lijsten die door elkaar laden
 
-  if (!rows.length){
-    const li = document.createElement('li');
-    li.className = 'leeg';
-    li.textContent = 'Nog niemand. Wees de eerste.';
-    list.appendChild(li);
+function boardRow(cls, cells){
+  const li = document.createElement('li');
+  if (cls) li.className = cls;
+  for (const [c, txt] of cells){
+    const sp = document.createElement('span');
+    sp.className = c;
+    sp.textContent = txt;            // nooit innerHTML: namen komen van spelers
+    li.appendChild(sp);
+  }
+  return li;
+}
+
+async function renderBoard(mineTs){
+  const mine = ++boardToken;
+  const list = el.boardList;
+
+  list.textContent = '';
+  list.appendChild(boardRow('leeg', [['', 'Laden…']]));
+  el.boardNote.textContent = '';
+
+  const res = await PipsBoard.top();
+  if (mine !== boardToken) return;    // ondertussen opnieuw geopend
+
+  list.textContent = '';
+  if (!res.rows.length){
+    list.appendChild(boardRow('leeg', [['', 'Nog niemand. Wees de eerste.']]));
   } else {
-    rows.forEach((r, i) => {
-      const li = document.createElement('li');
-      if (mineTs && r.ts === mineTs) li.className = 'me';
-      const cel = (cls, txt) => {
-        const sp = document.createElement('span');
-        sp.className = cls;
-        sp.textContent = txt;          // nooit innerHTML: namen komen van spelers
-        return sp;
-      };
-      li.appendChild(cel('rk', (i + 1) + '.'));
-      li.appendChild(cel('nm', r.name));
-      li.appendChild(cel('sc', String(r.score).padStart(6, '0')));
-      li.appendChild(cel('lv', 'blad ' + r.level));
-      list.appendChild(li);
+    res.rows.forEach((r, i) => {
+      list.appendChild(boardRow(mineTs && r.ts === mineTs ? 'me' : '', [
+        ['rk', (i + 1) + '.'],
+        ['nm', r.name],
+        ['sc', String(r.score).padStart(6, '0')],
+        ['lv', 'blad ' + r.level]
+      ]));
     });
   }
 
-  el.boardNote.textContent = rows.length
-    ? 'Deze lijst staat op dit toestel. Laat iedereen op dezelfde gsm spelen en heel de club staat erin.'
+  el.boardNote.textContent =
+    res.offline ? 'Geen verbinding met de clubranking. Dit is de lijst op dit toestel.'
+    : res.remote ? 'De ranglijst van heel de club. Iedereen speelt mee.'
+    : res.rows.length ? 'Deze lijst staat op dit toestel.'
     : 'Speel een partij en zet je naam erbij.';
+
+  const me = list.querySelector('.me');
+  if (me) me.scrollIntoView({ block: 'center' });
 }
 
 function showBoard(from, mineTs){
   boardFrom = from;
-  renderBoard(mineTs);
   show('board');
-  const me = el.boardList.querySelector('.me');
-  if (me) me.scrollIntoView({ block: 'center' });
+  renderBoard(mineTs);
 }
 
 function startGame(){
@@ -492,7 +509,10 @@ function gameOver(){
     G.best = G.score;
     localStorage.setItem('ttcw_best', String(G.best));
   }
-  el.finalScore.textContent = String(Math.min(999999, G.score)).padStart(6, '0');
+  const fin = String(G.score).padStart(6, '0');
+  el.finalScore.textContent = fin;
+  el.finalScore.classList.toggle('long',  fin.length === 7);
+  el.finalScore.classList.toggle('vlong', fin.length > 7);
   el.overQuip.textContent = pick(OVER_QUIPS);
   el.bestOver.textContent = G.best;
 
@@ -849,17 +869,28 @@ $('btnBoard').onclick     = () => showBoard('title');
 $('btnBoardOver').onclick = () => showBoard('over');
 $('btnBoardBack').onclick = () => show(boardFrom);
 
-el.submitRow.addEventListener('submit', e => {
+el.submitRow.addEventListener('submit', async e => {
   e.preventDefault();
-  const res = PipsBoard.submit(el.playerName.value, G.score, G.level);
+  const btn = $('btnSubmit');
+  if (btn.disabled) return;
+
+  btn.disabled = true;
+  const label = btn.textContent;
+  btn.textContent = 'Bezig…';
+
+  const res = await PipsBoard.submit(el.playerName.value, G.score, G.level);
+
+  btn.disabled = false;
+  btn.textContent = label;
   if (!res) return;                       // score past niet bij het blad
 
   localStorage.setItem('ttcw_name', res.entry.name);
   el.submitRow.classList.add('hidden');
   el.submitDone.classList.remove('hidden');
-  el.submitDone.textContent = res.rank
-    ? 'Genoteerd als ' + res.entry.name + ' — plaats ' + res.rank + '.'
-    : 'Genoteerd als ' + res.entry.name + '.';
+  el.submitDone.textContent =
+    res.offline ? 'Geen verbinding. Bewaard op dit toestel, de club ziet ze nog niet.'
+    : res.rank  ? 'Genoteerd als ' + res.entry.name + ' — plaats ' + res.rank + '.'
+                : 'Genoteerd als ' + res.entry.name + '.';
   Snd.gold();
   setTimeout(() => showBoard('over', res.entry.ts), 750);
 });

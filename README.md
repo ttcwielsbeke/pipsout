@@ -16,9 +16,10 @@ Open `index.html`, of speel online (GitHub Pages, zie onder).
 - ⚫ **Anti-topspin nop** — níet aanraken, −3 seconden en je combo is weg.
 - Rubber leeg vóór de klok af is → volgend blad. Klok op nul → een hartje minder. Drie hartjes en het is gedaan.
 
-Na afloop zet je je naam bij je score en kom je in de **erelijst**. Die staat op het
-toestel zelf: laat iedereen op dezelfde gsm spelen en heel de club staat in de lijst.
-Per naam blijft enkel de beste score staan.
+Na afloop zet je je naam bij je score en kom je in de **erelijst**: één gedeelde
+ranglijst voor heel de club. Per naam blijft enkel de beste score staan. Ligt de
+verbinding plat, dan wordt je score op je eigen toestel bewaard en zie je de lijst
+van dat toestel.
 
 Je kan je rubberkleur kiezen op het titelscherm: rood, zwart, groen, blauw, roze en paars —
 de kleuren die sinds de ITTF-regelwijziging van 2021 effectief te koop zijn bij korte noppen.
@@ -33,7 +34,8 @@ Drie bestanden, geen build, geen dependencies, geen server, geen assets.
 | `index.html` | HUD, overlays, ticker, og-tags |
 | `style.css` | de pixel-arcade skin |
 | `game.js` | canvas-render, noppenraster, geluid |
-| `board.js` | de erelijst (localStorage) |
+| `board.js` | de erelijst (Supabase, met localStorage als vangnet) |
+| `config.js` | de sleutels voor de clubranking |
 | `og.jpg` | 1200×630 kaart voor de link-preview |
 | `logo.svg` | het batje als vector — bron voor het GitHub-logo |
 | `logo.png` | 512×512, klaar om te uploaden |
@@ -103,6 +105,69 @@ is publiek en heeft geen sleutel nodig.
 | link | `https://ttcwielsbeke.github.io/pipsout/` |
 
 Het spel opent gewoon in een nieuw tabblad en past zich aan gsm en laptop aan.
+
+## De clubranking aanzetten
+
+De ranglijst draait op de gratis laag van [Supabase](https://supabase.com). Zolang
+`config.js` geen sleutels bevat, valt het spel vanzelf terug op een lijst per toestel —
+er gaat dus niets stuk zolang dit niet ingesteld is.
+
+**1. Maak een project** op supabase.com (gratis, geen kaart nodig).
+
+**2. Plak dit in de SQL Editor** en voer het uit:
+
+```sql
+create table public.scores (
+  id         bigint generated always as identity primary key,
+  name       text        not null,
+  score      integer     not null,
+  level      integer     not null,
+  ts         bigint      not null,
+  created_at timestamptz not null default now()
+);
+
+create index scores_score_idx on public.scores (score desc);
+
+alter table public.scores enable row level security;
+
+-- iedereen mag de ranglijst lezen
+create policy "ranglijst lezen"
+  on public.scores for select to anon
+  using (true);
+
+-- iedereen mag een score toevoegen, maar geen onzin
+create policy "score toevoegen"
+  on public.scores for insert to anon
+  with check (
+    char_length(btrim(name)) between 1 and 16
+    and level between 1 and 99
+    and score >= 0
+    and score <= 30000 * level * (level + 1)
+  );
+```
+
+Er staat bewust **geen** update- of delete-policy: bezoekers kunnen scores toevoegen
+en lezen, maar niets wijzigen of wissen. De bovengrens op `score` is dezelfde als in
+`board.js`: ruim het dubbele van wat een perfect gespeeld blad kan opleveren, zodat een
+uitzonderlijke partij nooit geweigerd wordt maar `9999999` wel.
+
+**3. Settings → API**, kopieer de *Project URL* en de *anon public* key naar `config.js`:
+
+```js
+provider: 'supabase',
+url: 'https://xxxxxxxx.supabase.co',
+key: 'eyJhbGciOi...'
+```
+
+Die anon key hoort publiek te zijn — dat is waar hij voor dient. De echte beveiliging
+zit in de policies hierboven, niet in het geheimhouden van de sleutel. De `service_role`
+key hoort hier nooit in.
+
+**4. Pushen.** Klaar.
+
+Eén ding om te weten: dit blijft een spel dat volledig in de browser draait, dus wie
+zijn console opendoet, kan een score verzinnen binnen die grenzen. Voor een clubranking
+is dat prima — en het wordt vanzelf de volgende running gag.
 
 ## De link-preview opnieuw maken
 
