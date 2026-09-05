@@ -45,13 +45,13 @@ Dan naar <http://localhost:8123>. (`index.html` rechtstreeks openen werkt ook.)
 
 ## Hosten op GitHub Pages
 
-```bash
-git remote add origin https://github.com/<gebruiker>/<repo>.git
-git push -u origin main
-```
+Deze repo staat op <https://github.com/boermansjo/pipsout>.
 
-Daarna in de repo: **Settings → Pages → Source: Deploy from a branch → `main` / `root`**.
-Na een minuutje staat het spel op `https://<gebruiker>.github.io/<repo>/`.
+Eenmalig aanzetten: **Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)`**
+(<https://github.com/boermansjo/pipsout/settings/pages>).
 
-Voor de volle grap: maak de repo `<clubnaam>.github.io`, dan is het gewoon
-`https://<clubnaam>.github.io/` — een gratis .io-domein.
+Een minuutje later staat het spel op **<https://boermansjo.github.io/pipsout/>** —
+een gratis .io-domein, precies zoals de nieuwsflits beloofde.
+
+Vanaf dan is elke `git push` naar `main` meteen een release. Er is geen build,
+dus wat in de repo staat, is wat er online staat.
