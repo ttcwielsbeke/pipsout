@@ -537,7 +537,10 @@ function drawHearts(){
 /* ============================================================
    UPDATE
    ============================================================ */
-function update(dt){
+/* dt   = afgevlakt, voor deeltjes en animaties: na een hapering mag
+          een vonk niet ineens een halve seconde verder springen
+   real = de echte verstreken tijd, voor alles wat telt voor de score */
+function update(dt, real){
   // deeltjes
   for (let i = G.parts.length - 1; i >= 0; i--){
     const q = G.parts[i];
@@ -562,7 +565,7 @@ function update(dt){
 
   // kettingreactie van lijmnoppen
   for (let i = G.chain.length - 1; i >= 0; i--){
-    G.chain[i].t -= dt;
+    G.chain[i].t -= real;
     if (G.chain[i].t <= 0){
       const p = G.chain[i].p;
       G.chain.splice(i, 1);
@@ -571,11 +574,11 @@ function update(dt){
   }
 
   if (G.comboT > 0){
-    G.comboT -= dt;
+    G.comboT -= real;
     if (G.comboT <= 0) G.combo = 0;
   }
 
-  G.time -= dt;
+  G.time -= real;
   const frac = Math.max(0, G.time / G.timeMax);
   el.timerFill.style.width = (frac * 100) + '%';
   el.timerFill.className = 'bar-fill' + (frac < 0.18 ? ' crit' : frac < 0.4 ? ' warn' : '');
@@ -814,11 +817,20 @@ function render(tms){
 /* ============================================================
    LOOP
    ============================================================ */
-let last = performance.now();
+/* De klok komt van performance.now(), niet van de tijdstempel die
+   requestAnimationFrame meegeeft: die loopt in sommige omgevingen niet
+   gelijk met de echte tijd. En de klok van het spel wordt niet op 50 ms
+   afgekapt, want dan tikt hij trager dan de echte seconden zodra het
+   tekenen onder de 20 beelden per seconde zakt — op een trage gsm kreeg
+   je zo meer speeltijd dan iemand anders. */
+let lastWall = performance.now();
 function frame(now){
-  const dt = Math.min(0.05, (now - last) / 1000);
-  last = now;
-  update(dt);
+  const t = performance.now();
+  let real = (t - lastWall) / 1000;
+  lastWall = t;
+  if (real < 0) real = 0;
+  if (real > 1) real = 1;            // tab stond stil: hoogstens één seconde inhalen
+  update(Math.min(0.05, real), real);
   render(now);
   requestAnimationFrame(frame);
 }
