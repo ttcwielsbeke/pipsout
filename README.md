@@ -120,7 +120,7 @@ er gaat dus niets stuk zolang dit niet ingesteld is.
 create table public.scores (
   id         bigint generated always as identity primary key,
   name       text        not null,
-  score      integer     not null,
+  score      bigint      not null,
   level      integer     not null,
   ts         bigint      not null,
   created_at timestamptz not null default now()
@@ -140,9 +140,27 @@ create policy "score toevoegen"
   on public.scores for insert to anon
   with check (
     char_length(btrim(name)) between 1 and 16
-    and level between 1 and 99
+    and level between 1 and 999
     and score >= 0
-    and score <= 30000 * level * (level + 1)
+    and score <= 30000::bigint * level * (level + 1)
+  );
+```
+
+Draait de ranglijst al met een oudere versie van die SQL (blad tot 99, `score` als
+`integer`)? Dan volstaat dit om bij te werken:
+
+```sql
+alter table public.scores alter column score type bigint;
+
+drop policy "score toevoegen" on public.scores;
+
+create policy "score toevoegen"
+  on public.scores for insert to anon
+  with check (
+    char_length(btrim(name)) between 1 and 16
+    and level between 1 and 999
+    and score >= 0
+    and score <= 30000::bigint * level * (level + 1)
   );
 ```
 

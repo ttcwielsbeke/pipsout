@@ -894,7 +894,11 @@ el.submitRow.addEventListener('submit', async e => {
 
   btn.disabled = false;
   btn.textContent = label;
-  if (!res) return;                       // score past niet bij het blad
+  if (!res){                              // score past niet bij het blad
+    el.submitDone.classList.remove('hidden');
+    el.submitDone.textContent = 'Deze score kon niet genoteerd worden.';
+    return;
+  }
 
   localStorage.setItem('ttcw_name', res.entry.name);
   el.submitRow.classList.add('hidden');

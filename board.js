@@ -28,12 +28,15 @@ function cleanName(raw){
 /* ---------- kan die score wel bij dat blad horen? ----------
    Het echte maximum van een perfect gespeeld blad ligt rond
    30000 * blad. We nemen er ruim het dubbele boven, zodat een
-   uitzonderlijke partij nooit geweigerd wordt maar 9999999 wel. */
+   uitzonderlijke partij nooit geweigerd wordt maar 9999999 wel.
+   Vanaf blad 12 wordt het niet moeilijker meer, dus een taaie
+   speler kan blijven gaan: 999 bladen is een halve dag non-stop. */
+const MAX_LEVEL = 999;
 const maxFor = level => 30000 * level * (level + 1);
 
 const plausible = (score, level) =>
   Number.isFinite(score) && Number.isFinite(level) &&
-  score >= 0 && level >= 1 && level <= 99 &&
+  score >= 0 && level >= 1 && level <= MAX_LEVEL &&
   score <= maxFor(level);
 
 /* ---------- lokale opslag ---------- */
